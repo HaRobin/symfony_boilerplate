@@ -26,7 +26,7 @@ class Task
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\ManytoOne(targetEntity: User::class, inversedBy: 'tasks')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'tasks')]
     private User $author;
     
 

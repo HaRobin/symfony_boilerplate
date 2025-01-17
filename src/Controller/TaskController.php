@@ -2,7 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\Task;
+use App\Form\TaskType;
 use App\Repository\TaskRepository;
+use App\Security\Voter\TaskVoter;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,30 +26,96 @@ class TaskController extends AbstractController
     }
 
     #[Route('/task/create', name: 'app_task_create')]
-    public function create(): Response
+    public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
-        return $this->render('task/create.html.twig');
+        $task = new Task();
+        $form = $this->createForm(TaskType::class, $task);
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $task->setAuthor($this->getUser());
+            $task->setCreatedAt(new \DateTimeImmutable());
+            $task->setUpdatedAt(new \DateTimeImmutable());
+            $entityManager->persist($task);
+            $entityManager->flush();
+            return $this->redirectToRoute('app_task_view', ['id' => $task->getId()]);
+        }
+
+        return $this->render('task/create.html.twig', [
+            'form' => $form->createView()
+        ]);
     }
 
-    #[Route('/task/edit', name: 'app_task_edit')]
-    public function edit(): Response
+    #[Route('/task/{id}/edit', name: 'app_task_edit')]
+    public function edit(TaskRepository $taskRepository, Request $request, EntityManagerInterface $entityManager): Response
     {
-        return $this->render('task/edit.html.twig');
+        $task = $taskRepository->find($request->get('id'));
+
+        if (!$task) {
+            $this->addFlash('error', 'Tâche introuvable.');
+            return $this->redirectToRoute('app_task');
+        }
+
+        if (!$this->isGranted(TaskVoter::EDIT, $task)) {
+            $this->addFlash('error', 'Vous n\'avez pas les droits nécessaires pour modifier cette tache.');
+            return $this->redirectToRoute('app_task');
+        }
+
+        $form = $this->createForm(TaskType::class, $task);
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $task->setAuthor($this->getUser());
+            $task->setCreatedAt(new \DateTimeImmutable());
+            $task->setUpdatedAt(new \DateTimeImmutable());
+            $entityManager->persist($task);
+            $entityManager->flush();
+            return $this->redirectToRoute('app_task_view', ['id' => $task->getId()]);
+        }
+
+        return $this->render('task/edit.html.twig', [
+            'form' => $form->createView()
+        ]);
     }
 
-    #[Route('/task/view', name: 'app_task_view')]
+    #[Route('/task/{id}/view', name: 'app_task_view')]
     public function view(TaskRepository $taskRepository, Request $request): Response
     {
         $task = $taskRepository->find($request->get('id'));
+
+        if (!$task) {
+            $this->addFlash('error', 'Tâche introuvable.');
+            return $this->redirectToRoute('app_task');
+        }
+
+        if (!$this->isGranted(TaskVoter::VIEW, $task)) {
+            $this->addFlash('error', 'Vous n\'avez pas les droits nécessaires pour afficher cette tache.');
+            return $this->redirectToRoute('app_task');
+        }
 
         return $this->render('task/view.html.twig', [
             'task' => $task,
         ]);
     }
 
-    #[Route('/task/delete', name: 'app_task_delete')]
-    public function delete(TaskRepository $taskRepository, Request $request): Response
+    #[Route('/task/{id}/delete', name: 'app_task_delete')]
+    public function delete(TaskRepository $taskRepository, EntityManagerInterface $entityManager, Request $request): Response
     {
-        return $this->render('task/delete.html.twig');
+        $task = $taskRepository->find($request->get('id'));
+
+        if (!$task) {
+            $this->addFlash('error', 'Tâche introuvable.');
+            return $this->redirectToRoute('app_task');
+        }
+
+        if (!$this->isGranted(TaskVoter::DELETE, $task)) {
+            $this->addFlash('error', 'Vous n\'avez pas les droits nécessaires pour supprimer cette tâche.');
+        } else {
+            $entityManager->remove($task);
+            $entityManager->flush();
+            $this->addFlash('success', 'Tâche supprimée avec succès.');
+        }
+
+        return $this->redirectToRoute('app_task');
     }
 }

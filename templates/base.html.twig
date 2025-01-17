@@ -1,17 +1,64 @@
+{# templates/base.html.twig #}
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Welcome!{% endblock %}</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
 
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
+    {% block stylesheets %}{% endblock %}
+    {% block javascripts %}
+        {% block importmap %}
+            {{ importmap('app') }}
         {% endblock %}
-    </head>
-    <body>
+    {% endblock %}
+</head>
+<body class="bg-gray-100 text-gray-900 flex flex-col min-h-screen">
+    
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="{{ path('app_task') }}" class="text-xl font-semibold text-gray-800">Task Manager</a>
+            <div>
+                {% if app.user %}
+                    <span class="text-gray-700 mr-4">Bonjour, {{ app.user.getEmail() }}</span>
+                    <a href="{{ path('app_logout') }}" class="bg-red-500 text-white px-4 py-2 rounded">Déconnexion</a>
+                {% else %}
+                    <a href="{{ path('app_login') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Connexion</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="container mx-auto mt-4 px-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="bg-{{ label == 'success' ? 'green' : 'red' }}-500 text-white px-4 py-2 rounded shadow-md mb-2" id="flash-message">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('#flash-message').forEach(msg => msg.remove());
+        }, 3000);
+    </script>
+    
+    <!-- Main Content -->
+    <main class="container mx-auto p-4 flex-grow">
         {% block body %}{% endblock %}
-    </body>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white shadow-md p-4 text-center text-gray-600 mt-auto">
+        © 2025 Task Manager - Symfony & TailwindCSS
+    </footer>
+</body>
 </html>

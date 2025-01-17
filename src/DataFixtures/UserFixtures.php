@@ -24,8 +24,6 @@ class UserFixtures extends Fixture
             ],
             [
                 'email' => 'admin@example.com',
-                'firstName' => 'Admin',
-                'lastName' => 'User',
                 'password' => 'adminpassword',
                 'role' => [UserRoles::Admin],
             ],

@@ -39,7 +39,7 @@ final class TaskVoter extends Voter
             case self::EDIT:
                 // logic to determine if the user can EDIT
 
-                if ($user->getRoles() === [UserRoles::Admin]) {
+                if (in_array(UserRoles::Admin->value, $user->getRoles(), true)) {
                     return true;
                 }
 
@@ -51,21 +51,21 @@ final class TaskVoter extends Voter
 
             case self::VIEW:
                 // logic to determine if the user can VIEW
-                
-                if ($user->getRoles() === [UserRoles::Admin]) {
+
+                if (in_array(UserRoles::Admin->value, $user->getRoles(), true)) {
                     return true;
                 }
 
                 if ($task->getAuthor() === $user) {
                     return true;
                 }
-                
+
                 break;
 
             case self::DELETE:
                 // logic to determine if the user can DELETE
-                
-                if ($user->getRoles() === [UserRoles::Admin]) {
+
+                if (in_array(UserRoles::Admin->value, $user->getRoles(), true)) {
                     return true;
                 }
 
