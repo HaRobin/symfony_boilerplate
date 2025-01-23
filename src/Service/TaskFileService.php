@@ -3,6 +3,8 @@
 namespace App\Service;
 
 use App\Entity\Task;
+use DateTime;
+use DateTimeZone;
 use Symfony\Component\Filesystem\Filesystem;
 
 class TaskFileService
@@ -41,14 +43,17 @@ class TaskFileService
     public function  listTasks(): array
     {
         $tasks = [];
-        $files = scandir('public/tasks');
+        $files = scandir(directory: 'public/tasks');
         foreach ($files as $file) {
-            $content = file_get_contents($file);
+            if ($file === '.' || $file === '..') {
+                continue;
+            }
+            $content = file_get_contents('public/tasks/' . $file);
             $tasks[] = [
                 'id' => pathinfo($file, PATHINFO_FILENAME),
                 'title' => trim(explode(':', explode(PHP_EOL, $content)[0])[1]),
                 'description' => trim(explode(':', explode(PHP_EOL, $content)[1])[1]),
-                'createdAt' => filectime($file),
+                'createdAt' => (new DateTime('@' . filectime('public/tasks/' . $file)))->setTimezone(new DateTimeZone('Europe/Paris')),
             ];
         }
         return $tasks;
@@ -61,7 +66,7 @@ class TaskFileService
             'id' => $id,
             'title' => trim(explode(':', explode(PHP_EOL, $content)[0])[1]),
             'description' => trim(explode(':', explode(PHP_EOL, $content)[1])[1]),
-            'createdAt' => filectime('public/tasks/' . $id . '.txt'),
+            'createdAt' => (new DateTime('@' . filectime('public/tasks/' . $id . '.txt')))->setTimezone(new DateTimeZone('Europe/Paris')),
         ];
         return $task;
     }
