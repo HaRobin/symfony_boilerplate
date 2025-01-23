@@ -6,6 +6,7 @@ use App\Entity\Task;
 use App\Form\TaskType;
 use App\Repository\TaskRepository;
 use App\Security\Voter\TaskVoter;
+use App\Service\TaskService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,8 +35,6 @@ class TaskController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $task->setAuthor($this->getUser());
-            $task->setCreatedAt(new \DateTimeImmutable());
-            $task->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->persist($task);
             $entityManager->flush();
             return $this->redirectToRoute('app_task_view', ['id' => $task->getId()]);
@@ -47,7 +46,7 @@ class TaskController extends AbstractController
     }
 
     #[Route('/task/{id}/edit', name: 'app_task_edit')]
-    public function edit(TaskRepository $taskRepository, Request $request, EntityManagerInterface $entityManager): Response
+    public function edit(TaskRepository $taskRepository, Request $request, EntityManagerInterface $entityManager, TaskService $taskService): Response
     {
         $task = $taskRepository->find($request->get('id'));
 
@@ -61,20 +60,24 @@ class TaskController extends AbstractController
             return $this->redirectToRoute('app_task');
         }
 
+        if (!$taskService->canEdit($task)) {
+            $this->addFlash('error', 'Vous ne pouvez pas modifier cette tâche 7 jours après sa création.');
+            return $this->redirectToRoute('app_task');
+        }
+
         $form = $this->createForm(TaskType::class, $task);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $task->setAuthor($this->getUser());
-            $task->setCreatedAt(new \DateTimeImmutable());
-            $task->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->persist($task);
             $entityManager->flush();
             return $this->redirectToRoute('app_task_view', ['id' => $task->getId()]);
         }
 
         return $this->render('task/edit.html.twig', [
-            'form' => $form->createView()
+            'form' => $form->createView(),
+            'task' => $task,
         ]);
     }
 

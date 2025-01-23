@@ -13,7 +13,7 @@ class UserFixtures extends Fixture
     public const USER_REFERENCE = 'user';
 
     public function __construct(private UserPasswordHasherInterface $passwordHasher) {}
-    
+
     public function load(ObjectManager $manager): void
     {
         $users = [

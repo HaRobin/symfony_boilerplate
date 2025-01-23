@@ -3,10 +3,25 @@
 {% block title %}Modifier une Tâche{% endblock %}
 {% block body %}
 <div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">Modifier la Tâche</h1>
-    {{ form_start(form, {'attr': {'class': 'space-y-4'}}) }}
-    {{ form_widget(form, {'attr': {'class': 'border p-2 rounded w-full'}}) }}
-    <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded">Mettre à Jour</button>
-    {{ form_end(form) }}
+    <h1 class="text-2xl font-bold mb-4">Modifier la tâche {{ task.getName()}}</h1>
+    <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-md mx-auto">
+        {{ form_start(form, {'attr': {'class': 'space-y-4'}}) }}
+        
+        <div>
+            {{ form_label(form.name, 'Nom de la tâche', {'label_attr': {'class': 'block text-gray-700 font-bold'}}) }}
+            {{ form_widget(form.name, {'attr': {'class': 'w-full p-2 border rounded', 'value': form.vars.value.name}}) }}
+            {{ form_errors(form.name) }}
+        </div>
+
+        <div>
+            {{ form_label(form.description, 'Description', {'label_attr': {'class': 'block text-gray-700 font-bold'}}) }}
+            {{ form_widget(form.description, {'attr': {'class': 'w-full p-2 border rounded', 'value': form.vars.value.description}}) }}
+            {{ form_errors(form.description) }}
+        </div>
+
+        <button type="submit" class="w-full bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition">Mettre à Jour</button>
+        
+        {{ form_end(form) }}
+    </div>
 </div>
 {% endblock %}
